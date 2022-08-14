@@ -1,1 +1,4 @@
 package balancer
+
+func init() {
+}

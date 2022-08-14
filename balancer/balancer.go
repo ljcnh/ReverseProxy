@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	AlgoNotSupported = errors.New("algorithm not supported")
+	NoHost           = errors.New("no host")
 )
 
 type Balancer interface {

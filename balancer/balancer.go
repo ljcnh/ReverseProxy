@@ -10,9 +10,11 @@ var (
 type Balancer interface {
 	Add(string)
 	Remove(string)
-	Balance(string) (string, error)
+	Next(string) (string, error)
 	Inc(string)
 	Done(string)
+	Count() int
+	Find(string) bool
 }
 
 type BalanceAlgo func([]string) Balancer

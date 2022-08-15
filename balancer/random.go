@@ -44,7 +44,7 @@ func (random *Random) Remove(host string) {
 	}
 }
 
-func (random *Random) Balance(string) (string, error) {
+func (random *Random) Next(_ string) (string, error) {
 	random.mu.RLock()
 	defer random.mu.RUnlock()
 	if len(random.hosts) == 0 {
@@ -53,8 +53,25 @@ func (random *Random) Balance(string) (string, error) {
 	return random.hosts[random.r.Intn(len(random.hosts))], nil
 }
 
-func (random *Random) Inc(string) {
+func (random *Random) Inc(_ string) {
 }
 
-func (random *Random) Done(string) {
+func (random *Random) Done(_ string) {
+}
+
+func (random *Random) Count() int {
+	random.mu.RLock()
+	defer random.mu.RUnlock()
+	return len(random.hosts)
+}
+
+func (random *Random) Find(host string) bool {
+	random.mu.RLock()
+	defer random.mu.RUnlock()
+	for _, h := range random.hosts {
+		if h == host {
+			return true
+		}
+	}
+	return false
 }

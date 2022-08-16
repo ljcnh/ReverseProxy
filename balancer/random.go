@@ -40,6 +40,7 @@ func (random *Random) Remove(host string) {
 	for i, h := range random.hosts {
 		if h == host {
 			random.hosts = append(random.hosts[:i], random.hosts[i+1:]...)
+			return
 		}
 	}
 }

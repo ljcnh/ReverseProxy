@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	AllBalanceAlgo[RandomBalancer] = NewIpHash
+	AllBalanceAlgo[IpHashBalancer] = NewIpHash
 }
 
 type Hasher func(data string) uint32

@@ -72,7 +72,7 @@ func (proxy *HTTPProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	url, err := proxy.balancer.Balance(getIp(r))
+	url, err := proxy.balancer.Next(getIp(r))
 	if err != nil {
 		w.WriteHeader(http.StatusBadGateway)
 		_, _ = w.Write([]byte(fmt.Sprintf("balance error: %s", err.Error())))

@@ -10,13 +10,7 @@ import (
 const Salt = "%#!"
 
 func init() {
-	AllBalanceAlgo[RandomBalancer] = NewP2C
-}
-
-// hostLoad host-load 网络-负载(连接数)
-type hostLoad struct {
-	host string
-	load uint64
+	AllBalanceAlgo[P2CBalancer] = NewP2C
 }
 
 type P2C struct {
@@ -117,10 +111,10 @@ func (p *P2C) Done(host string) {
 	}
 }
 
-func (p *P2C) Count() int {
+func (p *P2C) Count() uint {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	return len(p.hosts)
+	return uint(len(p.hosts))
 }
 
 func (p *P2C) Find(host string) bool {

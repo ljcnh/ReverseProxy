@@ -64,10 +64,10 @@ func (ipHash *IpHash) Inc(_ string) {
 func (ipHash *IpHash) Done(_ string) {
 }
 
-func (ipHash *IpHash) Count() int {
+func (ipHash *IpHash) Count() uint {
 	ipHash.mu.RLock()
 	defer ipHash.mu.RUnlock()
-	return len(ipHash.hosts)
+	return uint(len(ipHash.hosts))
 }
 
 func (ipHash *IpHash) Find(host string) bool {

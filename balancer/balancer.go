@@ -13,7 +13,7 @@ type Balancer interface {
 	Next(string) (string, error)
 	Inc(string)
 	Done(string)
-	Count() int
+	Count() uint
 	Find(string) bool
 }
 

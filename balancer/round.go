@@ -59,10 +59,10 @@ func (round *RoundRobin) Inc(_ string) {
 func (round *RoundRobin) Done(_ string) {
 }
 
-func (round *RoundRobin) Count() int {
+func (round *RoundRobin) Count() uint {
 	round.mu.RLock()
 	defer round.mu.RUnlock()
-	return len(round.hosts)
+	return uint(len(round.hosts))
 }
 
 func (round *RoundRobin) Find(host string) bool {

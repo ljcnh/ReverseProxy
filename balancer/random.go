@@ -60,10 +60,10 @@ func (random *Random) Inc(_ string) {
 func (random *Random) Done(_ string) {
 }
 
-func (random *Random) Count() int {
+func (random *Random) Count() uint {
 	random.mu.RLock()
 	defer random.mu.RUnlock()
-	return len(random.hosts)
+	return uint(len(random.hosts))
 }
 
 func (random *Random) Find(host string) bool {

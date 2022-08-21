@@ -41,6 +41,9 @@ func main() {
 		Addr:    ":" + strconv.Itoa(config.Port),
 		Handler: router,
 	}
+
+	log.Println(config)
+
 	if config.Schema == "http" {
 		err = ser.ListenAndServe()
 	} else if config.Schema == "https" {

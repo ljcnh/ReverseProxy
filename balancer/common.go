@@ -1,11 +1,13 @@
 package balancer
 
 const (
-	RoundRobinBalancer = "round-robin"
-	RandomBalancer     = "random"
-	IpHashBalancer     = "ip-hash"
-	P2CBalancer        = "p2c"
-	LeastLoadBalancer  = "least-load"
+	RoundRobinBalancer             = "round-robin"
+	RandomBalancer                 = "random"
+	IpHashBalancer                 = "ip-hash"
+	P2CBalancer                    = "p2c"
+	LeastLoadBalancer              = "least-load"
+	ConsistentHashBalancer         = "consistent-hash"
+	ConsistentHashWithLoadBalancer = "consistent-hash-with-load"
 )
 
 // hostLoad host-load 网络-负载(连接数)

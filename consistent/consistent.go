@@ -8,6 +8,7 @@ import (
 	"math"
 	"sort"
 	"sync"
+	"sync/atomic"
 )
 
 const replicationFactor = 10
@@ -25,10 +26,11 @@ type Consistent struct {
 	hosts     map[uint64]string
 	sorted    []uint64
 	hostMap   map[string]*Host
-	mu        sync.RWMutex
 	replicas  int
 	totalLoad int64
 	hashFunc  Hash
+
+	mu sync.RWMutex
 }
 
 func New(replicas int, hash Hash) *Consistent {
@@ -56,7 +58,7 @@ func (c *Consistent) Add(host string) {
 		Load: 0,
 	}
 	for i := 0; i < c.replicas; i++ {
-		h := c.hashFunc(fmt.Sprintf("%s:%d", host, i))
+		h := c.hashFunc(fmt.Sprintf("%s%d", host, i))
 		c.hosts[h] = host
 		c.sorted = append(c.sorted, h)
 	}
@@ -71,9 +73,11 @@ func (c *Consistent) Add(host string) {
 func (c *Consistent) Get(key string) (string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
+
 	if len(c.hosts) == 0 {
 		return "", NoHosts
 	}
+
 	h := c.hashFunc(key)
 	index := c.search(h)
 	return c.hosts[c.sorted[index]], nil
@@ -87,14 +91,16 @@ func (c *Consistent) GetLeast(key string) (string, error) {
 	}
 	h := c.hashFunc(key)
 	index := c.search(h)
+
+	i := index
 	for {
-		host := c.hosts[c.sorted[index]]
+		host := c.hosts[c.sorted[i]]
 		if c.loadOK(host) {
 			return host, nil
 		}
-		index++
-		if index >= len(c.hosts) {
-			index = 0
+		i++
+		if i >= len(c.hosts) {
+			i = 0
 		}
 	}
 }
@@ -116,8 +122,10 @@ func (c *Consistent) Inc(host string) {
 	if _, ok := c.hostMap[host]; !ok {
 		return
 	}
-	c.hostMap[host].Load += 1
-	c.totalLoad += 1
+	atomic.AddInt64(&c.hostMap[host].Load, 1)
+	atomic.AddInt64(&c.totalLoad, 1)
+	//c.hostMap[host].Load += 1
+	//c.totalLoad += 1
 }
 
 func (c *Consistent) Done(host string) {
@@ -126,15 +134,17 @@ func (c *Consistent) Done(host string) {
 	if _, ok := c.hostMap[host]; !ok {
 		return
 	}
-	c.hostMap[host].Load -= 1
-	c.totalLoad -= 1
+	atomic.AddInt64(&c.hostMap[host].Load, -1)
+	atomic.AddInt64(&c.totalLoad, -1)
+	//c.hostMap[host].Load -= 1
+	//c.totalLoad -= 1
 }
 
 func (c *Consistent) Remove(host string) bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	for i := 0; i < c.replicas; i++ {
-		h := c.hashFunc(fmt.Sprintf("%s:%d", host, i))
+		h := c.hashFunc(fmt.Sprintf("%s%d", host, i))
 		delete(c.hosts, h)
 		c.delSlice(h)
 	}
@@ -149,6 +159,21 @@ func (c *Consistent) GetHosts() (hosts []string) {
 		hosts = append(hosts, host)
 	}
 	return hosts
+}
+
+func (c *Consistent) Count() uint {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return uint(len(c.hostMap))
+}
+
+func (c *Consistent) Find(host string) bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if _, ok := c.hostMap[host]; ok {
+		return true
+	}
+	return false
 }
 
 func (c *Consistent) GetLoads() map[string]int64 {
@@ -199,7 +224,7 @@ func (c *Consistent) loadOK(host string) bool {
 
 func (c *Consistent) search(key uint64) int {
 	idx := sort.Search(len(c.sorted), func(i int) bool {
-		return c.sorted[i] == key
+		return c.sorted[i] >= key
 	})
 	if idx >= len(c.sorted) {
 		return 0
@@ -207,27 +232,27 @@ func (c *Consistent) search(key uint64) int {
 	return idx
 }
 
-func hash(host string) uint64 {
-	out := blake2b.Sum512([]byte(host))
-	return binary.LittleEndian.Uint64(out[:])
-}
-
 func (c *Consistent) delSlice(val uint64) {
 	idx := -1
 	left := 0
 	right := len(c.sorted) - 1
 	for left <= right {
-		mid := (right-left)/2 + left
+		mid := (right + left) / 2
 		if c.sorted[mid] == val {
 			idx = mid
 			break
 		} else if c.sorted[mid] > val {
 			right = mid - 1
 		} else {
-			left = left + 1
+			left = mid + 1
 		}
 	}
 	if idx != -1 {
 		c.sorted = append(c.sorted[:idx], c.sorted[idx+1:]...)
 	}
+}
+
+func hash(host string) uint64 {
+	out := blake2b.Sum512([]byte(host))
+	return binary.LittleEndian.Uint64(out[:])
 }

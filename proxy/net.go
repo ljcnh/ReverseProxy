@@ -60,8 +60,6 @@ func getHost(url *url.URL) string {
 func isConnection(host string) (status ServerConnectStatus) {
 	if tcpConnection(host) {
 		status = NORMAL
-	} else if netStatus(host) {
-		status = TCPFAILED
 	} else {
 		status = PINGFAILED
 	}

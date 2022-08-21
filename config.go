@@ -14,9 +14,10 @@ type Config struct {
 	Port                int         `yaml:"port"`
 	SSLCertificate      string      `yaml:"ssl_certificate"`
 	HealthCheck         bool        `yaml:"health_check"`
-	PingCheck           bool        `yaml:"ping_health_check"`
 	HealthCheckInterval uint        `yaml:"health_check_interval"`
 	MaxAllowed          uint        `yaml:"max_allowed"`
+	// PingCheck           bool        `yaml:"ping_health_check"`
+	// 需要管理员才能运行 Ping  暂时去掉
 }
 
 type Location struct {
@@ -78,6 +79,5 @@ func (c *Config) simpleValidation() error {
 	if c.HealthCheckInterval < 1 {
 		return errors.New("health_check_interval must be greater than 0")
 	}
-	//fmt.Println(user.Current())
 	return nil
 }

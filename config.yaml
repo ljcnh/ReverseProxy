@@ -3,7 +3,7 @@ port: 8089
 ssl_certificate:
 ssl_certificate_key:
 health_check: true
-health_check_interval: 0
+health_check_interval: 3
 max_allowed: 100
 location:
   - pattern: /
@@ -12,5 +12,5 @@ location:
       - "http://192.168.1.2:1015"
       - "https://192.168.1.2"
       - "http://my-server.com"
-    # 
-    balance_mode: bound
+    # round-robin random ip-hash p2c least-load consistent-hash consistent-hash-with-load
+    balance_mode: consistent-hash-with-load

@@ -10,9 +10,9 @@ max_allowed: 100
 location:
   - pattern: /
     proxy_pass:
-      - "http://192.168.1.1"
-      - "http://192.168.1.2:1015"
-      - "https://192.168.1.2"
-      - "http://my-server.com"
+      - "http://127.0.0.1:1331"
+      - "http://127.0.0.1:1332"
+      - "http://127.0.0.1:1333"
+      - "http://127.0.0.1:1334"
     # round-robin random ip-hash p2c least-load consistent-hash consistent-hash-with-load
-    balance_mode: consistent-hash-with-load
+    balance_mode: random

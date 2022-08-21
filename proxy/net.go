@@ -46,13 +46,15 @@ func getIp(request *http.Request) string {
 }
 
 func getHost(url *url.URL) string {
+	if _, _, err := net.SplitHostPort(url.Host); err == nil {
+		return url.Host
+	}
 	if url.Scheme == "http" {
 		return fmt.Sprintf("%s:%s", url.Host, "80")
 	} else if url.Scheme == "https" {
 		return fmt.Sprintf("%s:%s", url.Host, "443")
-	} else {
-		return url.Host
 	}
+	return url.Host
 }
 
 // 检查服务器的网络连接是否正常

@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -58,14 +57,15 @@ func getHost(url *url.URL) string {
 
 // 检查服务器的网络连接是否正常
 // isConnection  method: tcp或者ping
-func isConnection(host string) ServerConnectStatus {
+func isConnection(host string) (status ServerConnectStatus) {
 	if tcpConnection(host) {
-		return NORMAL
+		status = NORMAL
 	} else if netStatus(host) {
-		return TCPFAILED
+		status = TCPFAILED
 	} else {
-		return PINGFAILED
+		status = PINGFAILED
 	}
+	return
 }
 
 func tcpConnection(host string) bool {
@@ -94,7 +94,6 @@ func netStatus(host string) bool {
 	cmd := command.(*exec.Cmd)
 	err := cmd.Run()
 	if err != nil {
-		log.Fatalf("ping failed: %v\n", err)
 		return false
 	}
 	return true

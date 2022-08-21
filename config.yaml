@@ -3,6 +3,8 @@ port: 8089
 ssl_certificate:
 ssl_certificate_key:
 health_check: true
+# ping 检查需要root
+ping_health_check: false
 health_check_interval: 3
 max_allowed: 100
 location:

@@ -23,7 +23,7 @@ var (
 type HTTPProxy struct {
 	hostMap  map[string]*httputil.ReverseProxy
 	balancer balancer.Balancer
-	mu       sync.RWMutex
+	mu       sync.Mutex
 	alive    map[string]ServerConnectStatus
 }
 
@@ -32,12 +32,12 @@ func NewHTTPProxy(targetHosts []string, algorithm string) (*HTTPProxy, error) {
 	alive := make(map[string]ServerConnectStatus)
 	var hosts []string
 	for _, targetHost := range targetHosts {
-		url, err := url.Parse(targetHost)
+		urlH, err := url.Parse(targetHost)
 		if err != nil {
 			return nil, err
 		}
 
-		proxy := httputil.NewSingleHostReverseProxy(url)
+		proxy := httputil.NewSingleHostReverseProxy(urlH)
 
 		oriDirector := proxy.Director
 		proxy.Director = func(request *http.Request) {
@@ -46,7 +46,7 @@ func NewHTTPProxy(targetHosts []string, algorithm string) (*HTTPProxy, error) {
 			request.Header.Set(XRealIP, getIp(request))
 		}
 
-		host := getHost(url)
+		host := getHost(urlH)
 		hostMap[host] = proxy
 		alive[host] = NORMAL
 		hosts = append(hosts, host)
@@ -99,8 +99,10 @@ func (proxy *HTTPProxy) healthCheck(host string, interval uint) {
 		if preStatus != status {
 			if status == NORMAL {
 				proxy.balancer.Add(host)
+				log.Printf("Site reachable, add %s to load balancer.", host)
 			} else if preStatus == NORMAL {
 				proxy.balancer.Remove(host)
+				log.Printf("Site unreachable, remove %s from load balancer.", host)
 			}
 			proxy.setAlive(host, status)
 		}
@@ -114,7 +116,7 @@ func (proxy *HTTPProxy) setAlive(host string, status ServerConnectStatus) {
 }
 
 func (proxy *HTTPProxy) readAlive(url string) ServerConnectStatus {
-	proxy.mu.RLocker()
-	defer proxy.mu.RUnlock()
+	proxy.mu.Lock()
+	defer proxy.mu.Unlock()
 	return proxy.alive[url]
 }
